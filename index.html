@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tatami Match</title>
+    <style>
+       
+         * {  
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: url(./Images/background.jpeg) no-repeat center/cover fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background-attachment: scroll;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 40px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 50px;
+            perspective: 1000px;
+        }
+
+        .card {
+            aspect-ratio: 2/3;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card-front {
+            background: url(./Images/CardBack.png) no-repeat center/cover;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .card-back img {
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+            filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.2));
+        }
+
+        /* Individual card colors */
+        .card-bamboo {
+            background: linear-gradient(135deg, #c9d4c3 0%, #b8c5b3 100%);
+        }
+
+        .card-koi {
+            background: linear-gradient(135deg, #e8d7d7 0%, #d8c5c5 100%);
+        }
+
+        .card-fan {
+            background: linear-gradient(135deg, #e8d4d8 0%, #d8c4c8 100%);
+        }
+
+        .card-daruma {
+            background: linear-gradient(135deg, #d9c9d4 0%, #c9b9c4 100%);
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        .card.flipped:hover {
+            transform: rotateY(180deg) translateY(-5px) scale(1.02);
+        }
+
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 500px;
+            margin: 0 auto 30px auto;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 25px;
+            border-radius: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .score-board {
+            font-size: 16px;
+            color: #4a5568;
+            font-weight: bold;
+        }
+
+        .restart-btn {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .restart-btn:hover {
+            background-color: #2d3748;
+        }
+
+       
+        .win-modal {
+            display: none; 
+            position: fixed;
+            top: 0; 
+            left: 0;
+            width: 100%; 
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            max-width: 90%;
+            width: 350px;
+            animation: popIn 0.5s ease;
+        }
+
+        .modal-content h2 {
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .last-page {
+            margin-top: 30px;
+            text-align: center;
+            color:#6B8E23 ;
+            font-family: 'Georgia', serif;
+            
+        }
+            
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(253, 246, 227, 0.98); 
+            z-index: 2000; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            transition: opacity 0.6s ease-out, 
+            visibility 0.6s; 
+            /* So when the element appears or disappears, both its transparency and visibility change smoothly over 0.6 seconds instead of instantly popping in/out. Creates a nice fade in/out effect. */
+        }
+
+        .start-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .start-content {
+            max-width: 600px;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 2px solid #e2e8f0;
+        }
+
+        .start-title {
+            color: #4a5568;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+        }
+
+        .fact-box {
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #f7fafc;
+            border-left: 5px solid #6B8E23;
+            border-radius: 4px;
+            text-align: left;
+        }
+
+        .fact-box h3 {
+            color: #6B8E23;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .fact-box p {
+            color: #4a5568;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .start-btn-large {
+            background-color: #6B8E23; 
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, 
+            background-color 0.2s;
+        }
+
+        .start-btn-large:hover {
+            background-color: #556B2F;
+            transform: translateY(-2px);
+        }
+
+    </style>
+</head>
+<body>
+
+        <div id="startScreen" class="start-screen">
+        <div class="start-content">
+            <h1 class="start-title">Tatami Match</h1>
+            <p>畳マッチ</p>
+            <div class="fact-box">
+                <h3>Did you know?</h3>
+                <p>Playing memory card games activates the hippocampus, the area of the brain responsible for long-term memory. Regularly exercising this area can help improve concentration and visual recognition skills!</p>
+            </div>
+
+            <button class="start-btn-large" onclick="startGame()">Start Game</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <h1>Flip the cards</h1>
+
+    
+        <div class="game-info">
+            <div class="score-board">Moves: <span id="moves">0</span></div>
+            <button class="restart-btn" onclick="restartGame()">Restart Game</button>
+        </div>
+
+        <div class="card-grid" id="cardGrid">
+  
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back card-bamboo">
+                    <img src="./Svgs/Bambo.svg" alt="Bamboo Icon">
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back card-koi">
+                    <img src="./Svgs/koi.svg" alt="Koi Fish Icon">
+                </div>
+            </div>
+
+           
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back card-fan">
+                    <img src="./Svgs/fan.svg" alt="Fan Icon">
+                </div>
+            </div>
+
+           
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back card-daruma">
+                    <img src="./Svgs/Dolls.svg" alt="Daruma Doll Icon">
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back card-bamboo">
+                    <img src="./Svgs/Bambo.svg" alt="Bamboo Icon">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back card-koi">
+                    <img src="./Svgs/koi.svg" alt="Koi Fish Icon">
+                </div>
+            </div>
+
+            
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back card-fan">
+                    <img src="./Svgs/fan.svg" alt="Fan Icon">
+                </div>
+            </div>
+
+      
+            <div class="card">
+                <div class="card-face card-front"></div>
+                <div class="card-face card-back card-daruma">
+                    <img src="./Svgs/Dolls.svg" alt="Daruma Doll Icon">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="win-modal" id="winModal">
+        <div class="modal-content">
+            <h2> You Won! </h2>
+            <p>You finished in <span id="finalMoves">0</span> moves.</p>
+            <button class="restart-btn" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+      
+    <div class="last-page">
+        <h3>Created by</h3>
+        <p>Group-5</p>
+    </div>
+    <script>
+
+        const cards = document.querySelectorAll('.card');
+        const moveDisplay = document.getElementById('moves');
+        const winModal = document.getElementById('winModal');
+        const finalMoveDisplay = document.getElementById('finalMoves');
+        const grid = document.getElementById('cardGrid');
+
+        let hasFlippedCard = false;
+        let lockBoard = false;
+        let firstCard, secondCard;
+        let moves = 0;
+        let matchesFound = 0;
+
+        
+        function initGame() {
+            shuffleCards();
+            addEventListeners();
+        }
+
+      
+        function shuffleCards() {
+           
+            const cardsArray = Array.from(grid.children);
+            cardsArray.forEach(() => {
+                
+                grid.appendChild(grid.children[Math.random() * grid.children.length | 0]);
+            });
+            
+           
+            moves = 0;
+            matchesFound = 0;
+            moveDisplay.innerText = moves;
+            winModal.style.display = 'none';
+            resetBoard();
+            
+           
+            cards.forEach(card => card.classList.remove('flipped'));
+        }
+
+      
+        function addEventListeners() {
+            cards.forEach(card => {
+                card.addEventListener('click', flipCard);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return; 
+            if (this === firstCard) return; 
+
+            this.classList.add('flipped');
+
+            if (!hasFlippedCard) {
+             
+                hasFlippedCard = true;
+                firstCard = this;
+                return;
+            }
+
+
+            secondCard = this;
+            incrementMoves();
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            
+            let isMatch = firstCard.querySelector('img').src === secondCard.querySelector('img').src;
+
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+          
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+
+            matchesFound++;
+            resetBoard();
+
+         
+            if (matchesFound === cards.length / 2) {
+                setTimeout(() => {
+                    finalMoveDisplay.innerText = moves;
+                    winModal.style.display = 'flex'; 
+                }, 500);
+            }
+        }
+
+        function unflipCards() {
+           
+            lockBoard = true;
+
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                resetBoard();
+            }, 1000); 
+        }
+
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        function incrementMoves() {
+            moves++;
+            moveDisplay.innerText = moves;
+        }
+
+        function restartGame() {
+           
+            cards.forEach(card => card.removeEventListener('click', flipCard));
+            initGame();
+        }
+
+     
+      function startGame() {
+            const startScreen = document.getElementById('startScreen');
+            startScreen.classList.add('hidden');
+            
+            
+            restartGame(); 
+        }
+
+      
+        initGame();
+    </script>
+</body>
+</html>
